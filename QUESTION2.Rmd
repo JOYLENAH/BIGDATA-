@@ -1,0 +1,99 @@
+---
+title: "joy"
+output: html_document
+date: "2025-11-12"
+---
+
+```{r setup, include=FALSE}
+# Load necessary libraries
+library(tidyverse)     # Data manipulation and visualization
+library(caret)  
+library(randomForest)# For data splitting and evaluation
+```
+
+
+```{r setup, include=FALSE}
+# Load training data
+abalone_train <- read.csv("C:/Users/Joy/Downloads/Question 2_train.csv")
+```
+```{r}
+# Preview data structure
+head(abalone_train)
+str(abalone_train)
+summary(abalone_train)
+```
+```{r}
+#Check for missing values
+
+sum(is.na(abalone_train))
+
+#Convert 'Sex' to factor and ensure 'Age' is numeric
+
+abalone_train$Sex <- as.factor(abalone_train$Sex)
+abalone_train$Rings <- as.numeric(abalone_train$Rings)
+```
+```{r}
+colnames(abalone_train)
+
+```
+```{r}
+#Split Data into Training and Validation Sets
+set.seed(123)
+train_index <- createDataPartition(abalone_train$Rings, p = 0.8, list = FALSE)
+train_data <- abalone_train[train_index, ]
+valid_data <- abalone_train[-train_index, ]
+
+```
+```{r}
+#Train the Predictive Model (Random Forest)
+set.seed(123)
+rf_model <- randomForest(Rings ~ ., data = train_data, ntree = 200, importance = TRUE)
+
+#Display model summary
+
+print(rf_model)
+```
+```{r}
+#Evaluate Model Performance
+# Predict on validation data
+predictions <- predict(rf_model, newdata = valid_data)
+
+# Calculate performance metrics
+
+mae <- mean(abs(predictions - valid_data$Age))
+mse <- mean((predictions - valid_data$Age)^2)
+r2 <- cor(predictions, valid_data$Age)^2
+
+cat("Mean Absolute Error (MAE):", mae, "\n")
+cat("Mean Squared Error (MSE):", mse, "\n")
+cat("R-squared:", r2, "\n")
+
+```
+```{r}
+#checking the importance
+importance(rf_model)
+varImpPlot(rf_model)
+
+```
+question2
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
