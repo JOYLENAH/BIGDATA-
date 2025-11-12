@@ -1,0 +1,119 @@
+---
+title: "joy"
+output: html_document
+date: "2025-11-12"
+---
+
+```{r setup, include=FALSE}
+install.packages("tidyverse")
+install.packages('ggplot2')
+install.packages('dplyr')
+install.packages('readxl')
+install.packages("scales")
+
+```
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(readxl)
+```
+```{r}
+# Load CSV
+df <- read.csv("C:/Users/Joy/Downloads/Question 1.csv")
+```
+```{r}
+# Check the data
+head(df)
+str(df)
+summary(df)
+# checking missing values
+sum(is.na(df))
+
+```
+```{r}
+# Fill missing numeric salaries - warn user if many missing
+num_missing <- sum(is.na(df$base_salary))
+if(num_missing > 0) message(glue::glue("Warning: {num_missing} missing base_salary entries"))
+
+```
+```{r}
+#question1
+unique(df$Gender)
+```
+```{r}
+# 1. Compute average salary by Division, Grade, Department, Gender
+# Standardize gender names
+df <- df %>%
+  mutate(Gender = case_when(
+    Gender %in% c("M", "Male", "MALE") ~ "Male",
+    Gender %in% c("F", "Female", "FEMALE") ~ "Female",
+    TRUE ~ "Other"
+  ))
+# Calculate pay gap
+pay_gap <- df %>%
+  group_by(Division, Grade, Department, Gender) %>%
+  summarise(Average_Salary = mean(Base_Salary, na.rm = TRUE), .groups = "drop_last") %>%
+  pivot_wider(names_from = Gender, values_from = Average_Salary) %>%
+  mutate(Pay_Gap = Male - Female) %>%
+  drop_na()
+```
+```{r}
+
+# Visualize the pay gap
+ggplot(pay_gap, aes(x = Pay_Gap)) +
+  geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+  geom_vline(xintercept = 0, color = "red", linetype = "dashed", size = 1) +
+  labs(title = "Distribution of Gender Pay Gaps (Male - Female)",
+       subtitle = "Positive = Males earn more; Negative = Females earn more",
+       x = "Pay Gap (UGX)", y = "Count") +
+  theme_minimal(base_size = 13)
+names(pay_gap)
+```
+```{r}
+#qn 2 salary distribution across class
+# Boxplot by Department
+ggplot(df, aes(x = Department, y = Base_Salary)) +
+  geom_boxplot(fill = "lightblue") +
+  labs(title = "Salary Distribution by Department") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# Boxplot by Division
+ggplot(df, aes(x = Division, y = Base_Salary)) +
+  geom_boxplot(fill = "lightgreen") +
+  labs(title = "Salary Distribution by Division") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+```{r}
+#3.Impact of Overtime and Longevity Pay
+# Scatterplot: Overtime vs Base Salary
+ggplot(df, aes(x = Overtime_Pay, y = Base_Salary)) +
+  geom_point(alpha = 0.6, color = "darkorange") +
+  labs(title = "Impact of Overtime on Base Salary")
+# Correlation
+cor(df$Base_Salary, df$Overtime_Pay, use = "complete.obs")
+cor(df$Base_Salary, df$Longevity_Pay, use = "complete.obs")
+
+  
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
